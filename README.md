@@ -1,0 +1,1 @@
+# SQL-Temp-table_Left-Joins
