@@ -1,0 +1,79 @@
+
+USE pubs;
+GO
+
+-- Create temp table for Excel data
+DROP TABLE IF EXISTS #BookValidation;
+
+CREATE TABLE #BookValidation (
+    title_id VARCHAR(6),
+    RequestType VARCHAR(50)
+);
+
+-- Insert data from Excel
+INSERT INTO #BookValidation (title_id, RequestType)
+VALUES
+('BU1032', 'Validate Price'),
+('BU1111', 'Check Publisher'),
+('PS2091', 'Validate Sales'),
+('TC7777', 'Check Book'),
+('ZZ9999', 'Missing Record');
+
+SELECT *
+FROM #BookValidation;
+
+
+-- Join temp table to titles and publishers
+SELECT
+    a.title_id,
+    a.RequestType,
+    b.title,
+    b.price,
+    c.pub_name
+FROM #BookValidation a
+LEFT JOIN titles b
+    ON a.title_id = b.title_id
+LEFT JOIN publishers c
+    ON b.pub_id = c.pub_id;
+
+
+-- Find records that don't match
+SELECT
+    a.title_id,
+    a.RequestType,
+    b.title
+FROM #BookValidation a
+LEFT JOIN titles b
+    ON a.title_id = b.title_id
+WHERE b.title_id IS NULL;
+
+
+-- Check which records matched
+SELECT
+    a.title_id,
+    a.RequestType,
+    b.title,
+    b.price,
+    c.pub_name,
+    CASE
+        WHEN b.title_id IS NULL THEN 'Not Found'
+        ELSE 'Matched'
+    END AS Status
+FROM #BookValidation a
+LEFT JOIN titles b
+    ON a.title_id = b.title_id
+LEFT JOIN publishers c
+    ON b.pub_id = c.pub_id;
+
+
+-- Count matched and unmatched records
+SELECT
+    COUNT(*) AS TotalRecords,
+    COUNT(b.title_id) AS Matched,
+    COUNT(*) - COUNT(b.title_id) AS NotMatched
+FROM #BookValidation a
+LEFT JOIN titles b
+    ON a.title_id = b.title_id;
+
+
+DROP TABLE #BookValidation;
